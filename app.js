@@ -2,8 +2,10 @@ const express = require('express')
 const logger = require('morgan')
 const cors = require('cors')
 const mongoose = require('mongoose')
-const { DB_HOST } = require('./config')
+require('dotenv').config()
+const { DB_HOST } = process.env
 const app = express()
+
 mongoose
   .connect(DB_HOST)
   .then(() => {
