@@ -1,6 +1,6 @@
 const express = require("express");
 const { NotFound, BadRequest } = require("http-errors");
-const { joiSchema } = require("../../model/contact");
+const { joiSchema, joiSchemaFav } = require("../../model/contact");
 
 const { Contact } = require("../../model");
 const router = express.Router();
@@ -79,19 +79,25 @@ router.delete("/:id", async (req, res, next) => {
 
 router.patch("/:id/favorite", async (req, res, next) => {
   try {
+    const { error } = joiSchemaFav.validate(req.body);
+    if (error) {
+      error.status = 400;
+      error.message = "missing field favorite";
+      throw error;
+    }
     const { id } = req.params;
     const { favorite } = req.body;
-    const updateContact = await Contact.findByIdAndUpdate(
+    const updateStatusContact = await Contact.findByIdAndUpdate(
       id,
       { favorite },
       {
         new: true,
       }
     );
-    if (!updateContact) {
+    if (!updateStatusContact) {
       throw new NotFound();
     }
-    res.json(updateContact);
+    res.json(updateStatusContact);
   } catch (error) {
     if (error.message.includes("Cast to ObjectId failed")) {
       error.status = 404;
