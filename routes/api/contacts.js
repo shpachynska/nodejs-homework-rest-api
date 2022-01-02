@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.get("/", async (req, res, next) => {
   try {
-    const contacts = await Contact.find({}, "_id name email phone favorite");
+    const contacts = await Contact.find({}, "name email phone favorite");
     res.json(contacts);
   } catch (error) {
     next(error);
