@@ -8,11 +8,14 @@ const router = express.Router();
 
 router.get("/", authenticate, async (req, res, next) => {
   try {
+    const { page = 1, limit = 2, favorite } = req.query;
     const { _id } = req.user;
-    const contacts = await Contact.find(
-      { owner: _id },
-      "name email phone favorite owner"
-    );
+    const skip = (page - 1) * limit;
+    const contacts = await Contact.find({ owner: _id }, "", {
+      skip,
+      limit: +limit,
+      favorite,
+    });
     res.json(contacts);
   } catch (error) {
     next(error);

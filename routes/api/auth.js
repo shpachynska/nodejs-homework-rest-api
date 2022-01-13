@@ -16,21 +16,24 @@ router.post("/signup", async (req, res, next) => {
     if (error) {
       throw new BadRequest(error.message);
     }
-    const { name, email, password } = req.body;
+    const { email, password } = req.body;
     const user = await User.findOne({ email });
     if (user) {
-      throw new Conflict("User already exists");
+      throw new Conflict("Email in use");
     }
     const salt = await bcrypt.genSalt(10);
     const hashPassword = await bcrypt.hash(password, salt);
-    const newUser = await User.create({ name, email, password: hashPassword });
+    const newUser = await User.create({ email, password: hashPassword });
     res.status(201).json({
       user: {
-        name: newUser.name,
         email: newUser.email,
+        subscription: newUser.subscription,
       },
     });
   } catch (error) {
+    if (error.message.includes("validation failed")) {
+      error.status = 400;
+    }
     next(error);
   }
 });
@@ -50,7 +53,7 @@ router.post("/login", async (req, res, next) => {
     if (!passwordCompare) {
       throw new Unauthorized("Email or password is wrong");
     }
-    const { _id, name } = user;
+    const { _id } = user;
     const payload = {
       id: _id,
     };
@@ -61,10 +64,13 @@ router.post("/login", async (req, res, next) => {
       token,
       user: {
         email,
-        name,
+        subscription: user.subscription,
       },
     });
   } catch (error) {
+    if (error.message.includes("validation failed")) {
+      error.status = 400;
+    }
     next(error);
   }
 });
