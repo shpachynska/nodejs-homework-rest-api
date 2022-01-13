@@ -56,6 +56,7 @@ router.post("/login", async (req, res, next) => {
     };
 
     const token = jwt.sign(payload, SECRET_KEY, { expiresIn: "1h" });
+    await User.findByIdAndUpdate(_id, { token });
     res.json({
       token,
       user: {
