@@ -4,7 +4,9 @@ const fs = require("fs/promises");
 
 const { User } = require("../../model");
 const { authenticate, upload } = require("../../middlewares");
-const res = require("express/lib/response");
+const Jimp = require("jimp");
+// const { nextTick } = require("process");
+// const res = require("express/lib/response");
 
 const router = express.Router();
 
@@ -30,15 +32,27 @@ router.patch(
   "/avatars",
   authenticate,
   upload.single("avatar"),
-  async (req, res) => {
+  async (req, res, next) => {
     const { path: tempUpload, filename } = req.file;
     const [extension] = filename.split(".").reverse();
     const newFileName = `${req.user._id}.${extension}`;
-    const fileUpload = path.join(avatarsDir, newFileName);
-    await fs.rename(tempUpload, fileUpload);
-    const avatarURL = path.join("avatars", newFileName);
-    await User.findByIdAndUpdate(req.user._id, { avatarURL }, { new: true });
-    res.json({ avatarURL });
+    try {
+      const fileUpload = path.join(avatarsDir, newFileName);
+      Jimp.read(tempUpload)
+        .then((image) => {
+          image.resize(250, 250).write(fileUpload);
+        })
+        .catch((err) => {
+          next(err);
+        });
+      await fs.rename(tempUpload, fileUpload);
+      const avatarURL = path.join("avatars", newFileName);
+      await User.findByIdAndUpdate(req.user._id, { avatarURL }, { new: true });
+      res.json({ avatarURL });
+    } catch (error) {
+      await fs.unlink(tempUpload);
+      next(error);
+    }
   }
 );
 
