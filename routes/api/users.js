@@ -5,8 +5,6 @@ const fs = require("fs/promises");
 const { User } = require("../../model");
 const { authenticate, upload } = require("../../middlewares");
 const Jimp = require("jimp");
-// const { nextTick } = require("process");
-// const res = require("express/lib/response");
 
 const router = express.Router();
 
