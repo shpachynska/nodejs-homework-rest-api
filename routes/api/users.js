@@ -1,6 +1,7 @@
 const express = require("express");
 const path = require("path");
 const fs = require("fs/promises");
+const { NotFound } = require("http-errors");
 
 const { User } = require("../../model");
 const { authenticate, upload } = require("../../middlewares");
@@ -24,6 +25,23 @@ router.get("/current", authenticate, async (req, res) => {
       subscription,
     },
   });
+});
+
+router.get("/verify/:verificationToken", async (req, res, next) => {
+  try {
+    const { verificationToken } = req.params;
+    const user = await User.findOne({ verificationToken });
+    if (!user) {
+      throw new NotFound("User not found");
+    }
+    await User.findByIdAndUpdate(user._id, {
+      verificationToken: null,
+      verify: true,
+    });
+    res.json({ message: "Verification successful" });
+  } catch (error) {
+    next(error);
+  }
 });
 
 router.patch(
