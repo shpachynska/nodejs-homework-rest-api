@@ -11,7 +11,7 @@ const { sendEmail } = require("../../helpers");
 
 const router = express.Router();
 
-const { SECRET_KEY } = process.env;
+const { SECRET_KEY, SITE_NAME } = process.env;
 
 router.post("/signup", async (req, res, next) => {
   try {
@@ -38,12 +38,14 @@ router.post("/signup", async (req, res, next) => {
     const data = {
       to: email,
       subject: "Email verification",
-      html: `<a target="_blank" href="https://sitename.com/users/verify/${verificationToken}">Verify your email</a>`,
+      html: `<a target="_blank" href="${SITE_NAME}/users/verify/${verificationToken}">Verify your email</a>`,
     };
 
     await sendEmail(data);
 
     res.status(201).json({
+      status: "success",
+      code: 201,
       user: {
         email: newUser.email,
         subscription: newUser.subscription,
